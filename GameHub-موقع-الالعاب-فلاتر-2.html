@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameHub | اكتشف وقيّم أفضل الألعاب</title>
+<meta name="theme-color" content="#0B0E14">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+
+  /* =========================================================
+     ⚙️ إعدادات سريعة — ضع مفتاح RAWG API هنا فقط
+     ========================================================= */
+  :root{
+    --rawg-api-key: "YOUR_API_KEY_HERE"; /* استبدل هذا بمفتاحك من rawg.io */
+  }
+
+  :root{
+    --bg:#0B0E14;
+    --bg-soft:#10141D;
+    --card:#141925;
+    --card-hover:#1B2233;
+    --line:#232A3A;
+    --text:#E4E7EC;
+    --text-dim:#8A93A6;
+    --violet:#7B5EFF;
+    --violet-deep:#5C3FE0;
+    --violet-light:#231C42;
+    --amber:#FFB22C;
+    --danger:#FF5C7A;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Tajawal', sans-serif;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.display{font-family:'Chakra Petch', sans-serif;}
+  a{color:inherit; text-decoration:none;}
+  img{max-width:100%; display:block;}
+  button{font-family:'Tajawal'; border:none; background:none; cursor:pointer;}
+  input{font-family:'Tajawal';}
+  ul{list-style:none;}
+
+  /* ===== Header ===== */
+  header{
+    position:sticky; top:0; z-index:100;
+    background:rgba(11,14,20,0.92);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+    padding:14px 20px;
+  }
+  .nav-row{
+    max-width:1200px; margin:0 auto;
+    display:flex; align-items:center; gap:20px;
+  }
+  .logo{
+    display:flex; align-items:center; gap:8px;
+    font-family:'Chakra Petch'; font-weight:700; font-size:21px;
+    color:#fff; flex-shrink:0;
+  }
+  .logo .dot{ color:var(--violet); }
+
+  .search-box{
+    flex:1; max-width:480px;
+    position:relative;
+  }
+  .search-box input{
+    width:100%;
+    background:var(--card); border:1px solid var(--line);
+    color:var(--text); font-size:14px;
+    padding:10px 16px 10px 40px;
+    border-radius:10px;
+    transition:border-color .2s;
+  }
+  .search-box input:focus{ outline:none; border-color:var(--violet); }
+  .search-box .ic{
+    position:absolute; left:13px; top:50%; transform:translateY(-50%);
+    color:var(--text-dim); font-size:14px;
+  }
+  .search-results{
+    position:absolute; top:calc(100% + 8px); right:0; left:0;
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    max-height:360px; overflow-y:auto;
+    box-shadow:0 16px 40px rgba(0,0,0,0.5);
+    display:none; z-index:50;
+  }
+  .search-results.show{ display:block; }
+  .search-result-item{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 14px; cursor:pointer;
+    border-bottom:1px solid var(--line);
+    transition:background .15s;
+  }
+  .search-result-item:last-child{ border-bottom:none; }
+  .search-result-item:hover{ background:var(--card-hover); }
+  .search-result-item img{ width:40px; height:40px; border-radius:8px; object-fit:cover; flex-shrink:0; background:var(--bg-soft); }
+  .search-result-item .srn{ font-size:13px; font-weight:600; color:var(--text); }
+  .search-empty, .search-loading{ padding:16px; text-align:center; color:var(--text-dim); font-size:13px; }
+
+  nav{display:flex; gap:20px; flex-shrink:0;}
+  nav a{ font-size:13.5px; font-weight:600; color:var(--text-dim); transition:color .2s; }
+  nav a:hover, nav a:focus-visible{ color:var(--violet); }
+  nav a:focus-visible{ outline:2px solid var(--violet); outline-offset:4px; border-radius:4px; }
+  @media(max-width:760px){ nav{display:none;} }
+
+  /* ===== Hero ===== */
+  .hero{
+    max-width:1200px; margin:0 auto;
+    padding:56px 24px 0;
+    text-align:center;
+  }
+  .hero h1{
+    font-size:clamp(32px,6vw,54px); font-weight:700; color:#fff;
+    line-height:1.2; margin-bottom:14px;
+  }
+  .hero h1 span{ color:var(--violet); }
+  .hero p{
+    font-size:15px; color:var(--text-dim); max-width:520px; margin:0 auto 36px;
+    line-height:1.8;
+  }
+
+  /* ===== Live ticker (signature element) ===== */
+  .ticker-wrap{
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    background:var(--bg-soft);
+    overflow:hidden;
+    margin-top:30px;
+    position:relative;
+  }
+  .ticker-label{
+    position:absolute; right:0; top:0; bottom:0; z-index:5;
+    background:linear-gradient(90deg, var(--bg-soft) 70%, transparent);
+    display:flex; align-items:center; gap:6px;
+    padding:0 16px 0 40px;
+    font-size:11px; font-weight:700; color:var(--violet);
+  }
+  .ticker-label .pulse{
+    width:7px; height:7px; border-radius:50%; background:var(--violet);
+    animation:pulse 1.5s infinite;
+  }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+  .ticker-track{
+    display:flex; gap:36px; white-space:nowrap;
+    padding:12px 0;
+    animation:ticker 32s linear infinite;
+    width:max-content;
+  }
+  .ticker-track span{ font-size:12.5px; color:var(--text-dim); font-weight:600; }
+  .ticker-track span b{ color:var(--text); }
+  @keyframes ticker{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+  @media (prefers-reduced-motion: reduce){ .ticker-track{animation:none;} }
+
+  /* ===== Sections ===== */
+  section{ max-width:1200px; margin:0 auto; padding:54px 24px; }
+  .section-head{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin-bottom:24px; gap:16px;
+  }
+  .section-head h2{ font-size:clamp(22px,4vw,28px); color:#fff; font-weight:700; }
+  .section-head .tag{
+    font-size:11px; font-weight:700; color:var(--violet);
+    background:var(--violet-light); padding:4px 12px; border-radius:20px;
+  }
+
+  /* ===== Game cards grid ===== */
+  .games-grid{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:16px;
+  }
+  @media(min-width:640px){ .games-grid{grid-template-columns:repeat(3,1fr);} }
+  @media(min-width:960px){ .games-grid{grid-template-columns:repeat(5,1fr);} }
+
+  .game-card{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    overflow:hidden; cursor:pointer;
+    transition:transform .2s, border-color .2s;
+  }
+  .game-card:hover{ transform:translateY(-4px); border-color:var(--violet); }
+  .game-cover{
+    position:relative; aspect-ratio:3/4; background:var(--bg-soft); overflow:hidden;
+  }
+  .game-cover img{ width:100%; height:100%; object-fit:cover; }
+  .game-rating{
+    position:absolute; top:8px; left:8px;
+    background:rgba(11,14,20,0.85); backdrop-filter:blur(6px);
+    color:var(--amber); font-size:11px; font-weight:700;
+    padding:3px 8px; border-radius:8px;
+    display:flex; align-items:center; gap:4px;
+  }
+  .game-info{ padding:10px 12px 12px; }
+  .game-name{ font-size:13px; font-weight:700; color:var(--text); line-height:1.4; margin-bottom:4px;
+    overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  .game-meta{ font-size:10.5px; color:var(--text-dim); }
+
+  .skeleton-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  @media(min-width:640px){ .skeleton-grid{grid-template-columns:repeat(3,1fr);} }
+  @media(min-width:960px){ .skeleton-grid{grid-template-columns:repeat(5,1fr);} }
+  .skeleton-card{
+    aspect-ratio:3/4.6; border-radius:14px;
+    background:linear-gradient(100deg, var(--card) 30%, var(--card-hover) 50%, var(--card) 70%);
+    background-size:200% 100%; animation:shimmer 1.6s infinite;
+  }
+  @keyframes shimmer{ 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+
+  .error-box{
+    text-align:center; padding:40px 20px; color:var(--text-dim);
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+  }
+  .error-box b{ color:var(--danger); display:block; margin-bottom:6px; font-size:14px; }
+  .retry-btn{
+    margin-top:14px; background:var(--violet); color:#fff;
+    font-weight:700; font-size:13px; padding:9px 20px; border-radius:10px;
+  }
+  .retry-btn:hover{ background:var(--violet-deep); }
+
+  /* ===== Category chips ===== */
+  .categories-section{ background:var(--bg-soft); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .category-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  @media(min-width:640px){ .category-grid{grid-template-columns:repeat(3,1fr);} }
+  @media(min-width:960px){ .category-grid{grid-template-columns:repeat(5,1fr);} }
+
+  /* ===== Advanced filters ===== */
+  .filters-section{ background:var(--bg-soft); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .filters-bar{
+    display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;
+    margin-bottom:24px;
+  }
+  .filter-group{ display:flex; flex-direction:column; gap:6px; min-width:140px; flex:1; }
+  .filter-group label{ font-size:11.5px; font-weight:700; color:var(--text-dim); }
+  .filter-group select{
+    background:var(--card); border:1px solid var(--line); color:var(--text);
+    font-size:13.5px; font-weight:600; padding:10px 12px; border-radius:10px;
+    appearance:none; cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238A93A6' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:left 10px center;
+    padding-left:30px;
+  }
+  .filter-group select:focus{ outline:none; border-color:var(--violet); }
+  .filter-apply-btn{
+    background:var(--violet); color:#fff; font-weight:700; font-size:13.5px;
+    padding:10px 22px; border-radius:10px; white-space:nowrap;
+    transition:background .2s;
+  }
+  .filter-apply-btn:hover{ background:var(--violet-deep); }
+  .filter-reset-btn{
+    background:transparent; color:var(--text-dim); font-weight:600; font-size:12.5px;
+    padding:10px 14px; border-radius:10px; border:1px solid var(--line); white-space:nowrap;
+  }
+  .filter-reset-btn:hover{ color:var(--text); border-color:var(--text-dim); }
+  .filters-results-meta{
+    font-size:12.5px; color:var(--text-dim); margin-bottom:16px;
+  }
+  .filters-results-meta b{ color:var(--violet); }
+  .category-chip{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:18px 14px; text-align:center; cursor:pointer;
+    transition:border-color .2s, transform .2s;
+  }
+  .category-chip:hover{ border-color:var(--violet); transform:translateY(-2px); }
+  .category-chip .ic{ font-size:24px; margin-bottom:8px; display:block; }
+  .category-chip .lbl{ font-size:12.5px; font-weight:700; color:var(--text); }
+
+  /* ===== Game detail modal ===== */
+  .modal-overlay{
+    position:fixed; inset:0; z-index:300;
+    background:rgba(0,0,0,0.75);
+    display:none; align-items:flex-start; justify-content:center;
+    padding:0; overflow-y:auto;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal-box{
+    background:var(--bg); width:100%; max-width:760px;
+    min-height:100vh;
+  }
+  @media(min-width:780px){
+    .modal-overlay{ padding:40px 20px; align-items:center; }
+    .modal-box{ min-height:auto; border-radius:20px; border:1px solid var(--line); max-height:88vh; overflow-y:auto; }
+  }
+  .modal-cover{
+    position:relative; aspect-ratio:16/8; background:var(--card); overflow:hidden;
+  }
+  .modal-cover img{ width:100%; height:100%; object-fit:cover; }
+  .modal-close{
+    position:absolute; top:14px; left:14px; z-index:10;
+    width:36px; height:36px; border-radius:50%;
+    background:rgba(11,14,20,0.7); color:#fff; font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+    backdrop-filter:blur(6px);
+  }
+  .modal-close:hover{ background:rgba(11,14,20,0.9); }
+  .modal-body{ padding:24px 24px 36px; }
+  .modal-title{ font-size:24px; font-weight:700; color:#fff; margin-bottom:10px; }
+  .modal-tags{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+  .modal-tag{
+    font-size:11px; font-weight:700; color:var(--violet);
+    background:var(--violet-light); padding:4px 12px; border-radius:20px;
+  }
+  .modal-stats{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:20px;
+  }
+  @media(min-width:480px){ .modal-stats{ grid-template-columns:repeat(4,1fr); } }
+  .modal-stat{
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:12px; text-align:center;
+  }
+  .modal-stat .v{ font-family:'Chakra Petch'; font-weight:700; font-size:18px; color:var(--amber); }
+  .modal-stat .l{ font-size:10px; color:var(--text-dim); margin-top:3px; }
+  .modal-desc{ font-size:13.5px; color:var(--text-dim); line-height:1.9; margin-bottom:22px; }
+  .modal-section-title{ font-size:14px; font-weight:700; color:#fff; margin-bottom:10px; }
+  .modal-gallery{ display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:22px; }
+  .modal-gallery img{ width:140px; height:80px; object-fit:cover; border-radius:8px; flex-shrink:0; }
+  .modal-platforms{ display:flex; flex-wrap:wrap; gap:8px; }
+  .platform-pill{
+    font-size:11.5px; font-weight:600; color:var(--text);
+    background:var(--card); border:1px solid var(--line); padding:6px 12px; border-radius:8px;
+  }
+  .modal-loading{ padding:60px 20px; text-align:center; color:var(--text-dim); }
+
+  footer{
+    text-align:center; padding:30px 20px 44px;
+    color:var(--text-dim); font-size:11.5px; line-height:1.9;
+    border-top:1px solid var(--line);
+  }
+  footer a{ color:var(--violet); }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-row">
+    <div class="logo">Game<span class="dot">Hub</span></div>
+    <div class="search-box">
+      <span class="ic">🔍</span>
+      <input type="text" id="searchInput" placeholder="ابحث عن لعبة...">
+      <div class="search-results" id="searchResults"></div>
+    </div>
+    <nav>
+      <a href="#trending">رائجة</a>
+      <a href="#new">جديدة</a>
+      <a href="#top">الأعلى تقييماً</a>
+      <a href="#filters">فلاتر</a>
+      <a href="#categories">التصنيفات</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>اكتشف لعبتك<br>القادمة <span>المفضّلة</span></h1>
+  <p>تقييمات حقيقية، صور ومعلومات شاملة لآلاف الألعاب عبر كل المنصات — في مكان واحد.</p>
+</section>
+
+<div class="ticker-wrap">
+  <div class="ticker-label"><span class="pulse"></span> رائج الآن</div>
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
+
+<section id="trending">
+  <div class="section-head">
+    <h2>🔥 الألعاب الرائجة</h2>
+    <span class="tag">الأكثر تفاعلاً</span>
+  </div>
+  <div id="trendingGrid"><div class="skeleton-grid">
+    <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+  </div></div>
+</section>
+
+<section id="new">
+  <div class="section-head">
+    <h2>✨ أحدث الإصدارات</h2>
+    <span class="tag">جديد</span>
+  </div>
+  <div id="newGrid"><div class="skeleton-grid">
+    <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+  </div></div>
+</section>
+
+<section id="top">
+  <div class="section-head">
+    <h2>⭐ الأعلى تقييماً</h2>
+    <span class="tag">معتمدة من اللاعبين</span>
+  </div>
+  <div id="topGrid"><div class="skeleton-grid">
+    <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+  </div></div>
+</section>
+
+<section class="filters-section" id="filters">
+  <div class="section-head">
+    <h2>🎛️ فلاتر متقدمة</h2>
+    <span class="tag">خصّص بحثك</span>
+  </div>
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label for="filterGenre">النوع</label>
+      <select id="filterGenre">
+        <option value="">كل الأنواع</option>
+        <option value="action">أكشن</option>
+        <option value="fighting">قتال</option>
+        <option value="racing">سباقات</option>
+        <option value="role-playing-games-rpg">RPG</option>
+        <option value="adventure">مغامرات</option>
+        <option value="horror">رعب</option>
+        <option value="strategy">استراتيجية</option>
+        <option value="sports">رياضة</option>
+        <option value="simulation">محاكاة</option>
+        <option value="indie">ألعاب مستقلة</option>
+        <option value="shooter">إطلاق نار</option>
+        <option value="puzzle">ألغاز</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filterYear">سنة الإصدار</label>
+      <select id="filterYear">
+        <option value="">كل السنوات</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filterRating">التقييم الأدنى</label>
+      <select id="filterRating">
+        <option value="">أي تقييم</option>
+        <option value="4.5">⭐ 4.5 فأعلى</option>
+        <option value="4">⭐ 4 فأعلى</option>
+        <option value="3.5">⭐ 3.5 فأعلى</option>
+        <option value="3">⭐ 3 فأعلى</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filterOrder">الترتيب حسب</label>
+      <select id="filterOrder">
+        <option value="-rating">الأعلى تقييماً</option>
+        <option value="-released">الأحدث إصداراً</option>
+        <option value="-added">الأكثر شعبية</option>
+        <option value="name">الاسم (أ-ي)</option>
+      </select>
+    </div>
+    <button class="filter-apply-btn" id="applyFiltersBtn">تطبيق الفلاتر</button>
+    <button class="filter-reset-btn" id="resetFiltersBtn">إعادة ضبط</button>
+  </div>
+  <div class="filters-results-meta" id="filtersMeta" style="display:none;"></div>
+  <div id="filtersGrid"></div>
+</section>
+
+<section class="categories-section" id="categories">
+  <div class="section-head">
+    <h2>🎮 تصفح حسب الفئة</h2>
+  </div>
+  <div class="category-grid" id="categoryGrid">
+    <div class="category-chip" data-genre="action"><span class="ic">⚔️</span><span class="lbl">أكشن</span></div>
+    <div class="category-chip" data-genre="fighting"><span class="ic">🥊</span><span class="lbl">قتال</span></div>
+    <div class="category-chip" data-genre="racing"><span class="ic">🏎️</span><span class="lbl">سباقات</span></div>
+    <div class="category-chip" data-genre="role-playing-games-rpg"><span class="ic">🗡️</span><span class="lbl">RPG</span></div>
+    <div class="category-chip" data-genre="adventure"><span class="ic">🧭</span><span class="lbl">مغامرات</span></div>
+    <div class="category-chip" data-genre="horror"><span class="ic">👻</span><span class="lbl">رعب</span></div>
+    <div class="category-chip" data-genre="strategy"><span class="ic">🧠</span><span class="lbl">استراتيجية</span></div>
+    <div class="category-chip" data-genre="sports"><span class="ic">⚽</span><span class="lbl">رياضة</span></div>
+    <div class="category-chip" data-genre="simulation"><span class="ic">🛠️</span><span class="lbl">محاكاة</span></div>
+    <div class="category-chip" data-genre="indie"><span class="ic">💎</span><span class="lbl">ألعاب مستقلة</span></div>
+  </div>
+</section>
+
+<section id="categoryResults" style="display:none;">
+  <div class="section-head">
+    <h2 id="categoryResultsTitle">نتائج التصنيف</h2>
+    <span class="tag" onclick="closeCategoryResults()" style="cursor:pointer;">✕ إغلاق</span>
+  </div>
+  <div id="categoryGridResults"></div>
+</section>
+
+<footer>
+  بيانات الألعاب مقدمة عبر <a href="https://rawg.io" target="_blank" rel="noopener">RAWG API</a> · موقع تجريبي لأغراض تعليمية<br>
+  بُني لـ <span style="color:#7B5EFF; font-weight:700;">محمد</span>
+</footer>
+
+<!-- ===== نافذة تفاصيل اللعبة ===== -->
+<div class="modal-overlay" id="gameModal">
+  <div class="modal-box" id="gameModalBox">
+    <div class="modal-loading">جاري التحميل...</div>
+  </div>
+</div>
+
+<script>
+// ============================================
+// 🔧 مفتاح RAWG API
+// ============================================
+const RAWG_KEY = getComputedStyle(document.documentElement).getPropertyValue('--rawg-api-key').replace(/['"]/g, '').trim();
+const RAWG_BASE = 'https://api.rawg.io/api';
+
+function rawgUrl(path, params = {}){
+  const url = new URL(RAWG_BASE + path);
+  url.searchParams.set('key', RAWG_KEY);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  return url.toString();
+}
+
+async function fetchRawg(path, params = {}){
+  const res = await fetch(rawgUrl(path, params));
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+// ============================================
+// أدوات مساعدة
+// ============================================
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+
+function gameCardTemplate(game){
+  const rating = game.rating ? game.rating.toFixed(1) : '—';
+  const year = game.released ? game.released.slice(0,4) : '—';
+  const img = game.background_image || '';
+  return `
+    <div class="game-card" data-id="${game.id}">
+      <div class="game-cover">
+        ${img ? `<img src="${img}" alt="${escapeHtml(game.name)}" loading="lazy">` : ''}
+        <div class="game-rating">⭐ ${rating}</div>
+      </div>
+      <div class="game-info">
+        <div class="game-name">${escapeHtml(game.name)}</div>
+        <div class="game-meta">${year}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderGrid(containerId, games){
+  const el = document.getElementById(containerId);
+  if (!games || games.length === 0){
+    el.innerHTML = `<div class="error-box">لا توجد ألعاب لعرضها حالياً.</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="games-grid">${games.map(gameCardTemplate).join('')}</div>`;
+  el.querySelectorAll('.game-card').forEach(card => {
+    card.addEventListener('click', () => openGameModal(card.dataset.id));
+  });
+}
+
+function renderError(containerId, retryFn){
+  const el = document.getElementById(containerId);
+  el.innerHTML = `
+    <div class="error-box">
+      <b>تعذّر تحميل الألعاب</b>
+      تأكد من اتصالك بالإنترنت أو من صلاحية مفتاح API.
+      <button class="retry-btn" id="retry-${containerId}">إعادة المحاولة</button>
+    </div>
+  `;
+  document.getElementById(`retry-${containerId}`).addEventListener('click', retryFn);
+}
+
+// ============================================
+// تحميل الأقسام الرئيسية
+// ============================================
+async function loadTrending(){
+  try{
+    const data = await fetchRawg('/games', { ordering: '-added', page_size: 10 });
+    renderGrid('trendingGrid', data.results);
+    buildTicker(data.results);
+  }catch(e){
+    renderError('trendingGrid', loadTrending);
+  }
+}
+
+async function loadNew(){
+  try{
+    const today = new Date();
+    const lastMonth = new Date(today); lastMonth.setMonth(today.getMonth() - 2);
+    const dates = `${lastMonth.toISOString().slice(0,10)},${today.toISOString().slice(0,10)}`;
+    const data = await fetchRawg('/games', { dates, ordering: '-released', page_size: 10 });
+    renderGrid('newGrid', data.results);
+  }catch(e){
+    renderError('newGrid', loadNew);
+  }
+}
+
+async function loadTop(){
+  try{
+    const data = await fetchRawg('/games', { ordering: '-rating', page_size: 10 });
+    renderGrid('topGrid', data.results);
+  }catch(e){
+    renderError('topGrid', loadTop);
+  }
+}
+
+function buildTicker(games){
+  const track = document.getElementById('tickerTrack');
+  const items = games.map(g => `<span><b>${escapeHtml(g.name)}</b> · ⭐ ${g.rating ? g.rating.toFixed(1) : '—'}</span>`).join('');
+  // تكرار القائمة مرتين لإنشاء تأثير حلقة متصلة
+  track.innerHTML = items + items;
+}
+
+// ============================================
+// البحث الفوري
+// ============================================
+let searchTimeout = null;
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimeout);
+  const query = searchInput.value.trim();
+  if (query.length < 2){
+    searchResults.classList.remove('show');
+    return;
+  }
+  searchResults.innerHTML = `<div class="search-loading">جاري البحث...</div>`;
+  searchResults.classList.add('show');
+  searchTimeout = setTimeout(() => runSearch(query), 400);
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.search-box')) searchResults.classList.remove('show');
+});
+
+async function runSearch(query){
+  try{
+    const data = await fetchRawg('/games', { search: query, page_size: 8 });
+    if (!data.results || data.results.length === 0){
+      searchResults.innerHTML = `<div class="search-empty">لا توجد نتائج لـ "${escapeHtml(query)}"</div>`;
+      return;
+    }
+    searchResults.innerHTML = data.results.map(g => `
+      <div class="search-result-item" data-id="${g.id}">
+        ${g.background_image ? `<img src="${g.background_image}" alt="">` : ''}
+        <span class="srn">${escapeHtml(g.name)}</span>
+      </div>
+    `).join('');
+    searchResults.querySelectorAll('.search-result-item').forEach(item => {
+      item.addEventListener('click', () => {
+        openGameModal(item.dataset.id);
+        searchResults.classList.remove('show');
+        searchInput.value = '';
+      });
+    });
+  }catch(e){
+    searchResults.innerHTML = `<div class="search-empty">تعذّر البحث، حاول مجدداً</div>`;
+  }
+}
+
+// ============================================
+// التصنيفات
+// ============================================
+document.querySelectorAll('.category-chip').forEach(chip => {
+  chip.addEventListener('click', () => loadCategory(chip.dataset.genre, chip.querySelector('.lbl').textContent));
+});
+
+async function loadCategory(genreSlug, label){
+  const section = document.getElementById('categoryResults');
+  const grid = document.getElementById('categoryGridResults');
+  document.getElementById('categoryResultsTitle').textContent = `🎮 ${label}`;
+  section.style.display = 'block';
+  grid.innerHTML = `<div class="skeleton-grid"><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div></div>`;
+  section.scrollIntoView({ behavior:'smooth', block:'start' });
+
+  try{
+    const data = await fetchRawg('/games', { genres: genreSlug, ordering: '-rating', page_size: 10 });
+    renderGrid('categoryGridResults', data.results);
+  }catch(e){
+    renderError('categoryGridResults', () => loadCategory(genreSlug, label));
+  }
+}
+
+function closeCategoryResults(){
+  document.getElementById('categoryResults').style.display = 'none';
+}
+
+// ============================================
+// الفلاتر المتقدمة
+// ============================================
+function populateYearFilter(){
+  const yearSelect = document.getElementById('filterYear');
+  const currentYear = new Date().getFullYear();
+  for (let y = currentYear; y >= 1990; y--){
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    yearSelect.appendChild(opt);
+  }
+}
+
+async function applyFilters(){
+  const genre = document.getElementById('filterGenre').value;
+  const year = document.getElementById('filterYear').value;
+  const minRating = document.getElementById('filterRating').value;
+  const ordering = document.getElementById('filterOrder').value;
+
+  const grid = document.getElementById('filtersGrid');
+  const meta = document.getElementById('filtersMeta');
+  grid.innerHTML = `<div class="skeleton-grid"><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div></div>`;
+  meta.style.display = 'none';
+
+  const params = { ordering, page_size: 15 };
+  if (genre) params.genres = genre;
+  if (year) params.dates = `${year}-01-01,${year}-12-31`;
+
+  try{
+    const data = await fetchRawg('/games', params);
+    let results = data.results || [];
+
+    // فلترة التقييم الأدنى يدوياً (RAWG لا يدعم هذا كمعامل مباشر في الخطة المجانية)
+    if (minRating){
+      results = results.filter(g => g.rating >= parseFloat(minRating));
+    }
+
+    if (results.length === 0){
+      grid.innerHTML = `<div class="error-box">لا توجد ألعاب تطابق هذه الفلاتر. جرّب تخفيف الشروط.</div>`;
+      return;
+    }
+
+    meta.style.display = 'block';
+    meta.innerHTML = `تم العثور على <b>${results.length}</b> لعبة مطابقة للفلاتر المحددة`;
+    renderGrid('filtersGrid', results);
+  }catch(e){
+    renderError('filtersGrid', applyFilters);
+  }
+}
+
+function resetFilters(){
+  document.getElementById('filterGenre').value = '';
+  document.getElementById('filterYear').value = '';
+  document.getElementById('filterRating').value = '';
+  document.getElementById('filterOrder').value = '-rating';
+  document.getElementById('filtersGrid').innerHTML = '';
+  document.getElementById('filtersMeta').style.display = 'none';
+}
+
+document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
+populateYearFilter();
+
+// ============================================
+// نافذة تفاصيل اللعبة
+// ============================================
+const gameModal = document.getElementById('gameModal');
+const gameModalBox = document.getElementById('gameModalBox');
+
+async function openGameModal(id){
+  gameModal.classList.add('show');
+  gameModalBox.innerHTML = `<div class="modal-loading">جاري التحميل...</div>`;
+  document.body.style.overflow = 'hidden';
+
+  try{
+    const [game, screenshots] = await Promise.all([
+      fetchRawg(`/games/${id}`),
+      fetchRawg(`/games/${id}/screenshots`).catch(() => ({ results: [] }))
+    ]);
+    renderGameModal(game, screenshots.results || []);
+  }catch(e){
+    gameModalBox.innerHTML = `
+      <div class="modal-body">
+        <button class="modal-close" onclick="closeGameModal()" style="position:static; margin-bottom:16px;">✕ إغلاق</button>
+        <div class="error-box"><b>تعذّر تحميل تفاصيل اللعبة</b>حاول مرة أخرى لاحقاً.</div>
+      </div>
+    `;
+  }
+}
+
+function renderGameModal(game, screenshots){
+  const genres = (game.genres || []).map(g => `<span class="modal-tag">${escapeHtml(g.name)}</span>`).join('');
+  const platforms = (game.platforms || []).map(p => `<span class="platform-pill">${escapeHtml(p.platform.name)}</span>`).join('');
+  const gallery = screenshots.slice(0, 8).map(s => `<img src="${s.image}" alt="" loading="lazy">`).join('');
+  const developers = (game.developers || []).map(d => d.name).join(', ') || '—';
+  const publishers = (game.publishers || []).map(p => p.name).join(', ') || '—';
+
+  gameModalBox.innerHTML = `
+    <div class="modal-cover">
+      ${game.background_image ? `<img src="${game.background_image}" alt="${escapeHtml(game.name)}">` : ''}
+      <button class="modal-close" onclick="closeGameModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-title">${escapeHtml(game.name)}</div>
+      <div class="modal-tags">${genres}</div>
+      <div class="modal-stats">
+        <div class="modal-stat"><div class="v">⭐ ${game.rating ? game.rating.toFixed(1) : '—'}</div><div class="l">التقييم</div></div>
+        <div class="modal-stat"><div class="v">${game.ratings_count || 0}</div><div class="l">عدد التقييمات</div></div>
+        <div class="modal-stat"><div class="v">${game.released ? game.released.slice(0,4) : '—'}</div><div class="l">سنة الإصدار</div></div>
+        <div class="modal-stat"><div class="v">${game.metacritic || '—'}</div><div class="l">Metacritic</div></div>
+      </div>
+      <p class="modal-desc">${escapeHtml((game.description_raw || 'لا يوجد وصف متاح لهذه اللعبة.').slice(0, 500))}${(game.description_raw||'').length > 500 ? '...' : ''}</p>
+
+      ${gallery ? `<div class="modal-section-title">صور من اللعبة</div><div class="modal-gallery">${gallery}</div>` : ''}
+
+      <div class="modal-section-title">المنصات المدعومة</div>
+      <div class="modal-platforms">${platforms || '<span class="platform-pill">غير محدد</span>'}</div>
+
+      <div style="margin-top:20px; font-size:12.5px; color:var(--text-dim); line-height:1.8;">
+        <div><b style="color:var(--text);">المطوّر:</b> ${escapeHtml(developers)}</div>
+        <div><b style="color:var(--text);">الناشر:</b> ${escapeHtml(publishers)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function closeGameModal(){
+  gameModal.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+gameModal.addEventListener('click', (e) => { if (e.target === gameModal) closeGameModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeGameModal(); });
+
+// ============================================
+// التحميل الأولي
+// ============================================
+loadTrending();
+loadNew();
+loadTop();
+</script>
+
+</body>
+</html>
